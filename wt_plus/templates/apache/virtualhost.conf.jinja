@@ -1,0 +1,73 @@
+<VirtualHost {% if secure %}_default_:443{% else %}*:80{% endif %}>
+    ServerAdmin admin@wt-env.test
+
+    {% if server_name %}
+    ServerName {{ server_name }}
+    {% endif %}
+
+    {% if path %}
+    DocumentRoot {{ path }}
+    {% endif %}
+
+    {% if log_path %}
+    ErrorLog {{ log_path }}/{{ site_id }}-error.log
+    {% endif %}
+
+    {% if aliases %}
+    ServerAlias {{ aliases }}
+    {% endif %}
+
+    {% if secure %}
+    SSLEngine on
+    SSLCertificateFile {{ crt_path }}
+    SSLCertificateKeyFile {{ key_path }}
+    {% endif %}
+
+    {% if path %}
+    <Directory "{{ path }}">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+
+        Order allow,deny
+        Allow from all
+    </Directory>
+    {% endif %}
+
+    {% if proxies_pass or proxies_match %}
+    ProxyPreserveHost Off
+    ProxyRequests Off
+
+    {% for proxy in proxies_pass %}
+    ProxyPass {{ proxy }}
+    ProxyPassReverse {{ proxy }}
+    {% endfor %}
+
+    {% for proxy in proxies_match %}
+    ProxyPassMatch {{ proxy }}
+    {% endfor %}
+    {% endif %}
+
+    {% if custom %}
+    {{ custom }}
+    {% endif %}
+
+    {% if php_version %}
+    <IfModule proxy_fcgi_module>
+        # Enable http authorization headers
+        <IfModule setenvif_module>
+            SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1
+        </IfModule>
+        <FilesMatch ".+\.ph(ar|p|tml)$">
+            <If "-f %{REQUEST_FILENAME}">
+                SetHandler "proxy:unix:/run/php/php{{ php_version }}-fpm-{{ site_id }}.sock|fcgi://localhost"
+            </If>
+        </FilesMatch>
+        <FilesMatch ".+\.phps$">
+            Require all denied
+        </FilesMatch>
+    </IfModule>
+    {% endif %}
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr et

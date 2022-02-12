@@ -1,0 +1,17 @@
+<VirtualHost *:80>
+    ServerAdmin admin@wt-env.test
+
+    {% if server_name %}
+    ServerName {{ server_name }}
+    {% endif %}
+
+    {% if aliases %}
+    ServerAlias {{ aliases }}
+    {% endif %}
+
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr et

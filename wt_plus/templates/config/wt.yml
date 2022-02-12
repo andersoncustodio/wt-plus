@@ -1,0 +1,13 @@
+version: 1.0
+
+wt:
+  alias: {}
+
+php:
+  version: 7.3
+
+hosts: {}
+
+sites: {}
+
+# vim: syntax=yaml ts=2 sw=2 sts=2 sr et
