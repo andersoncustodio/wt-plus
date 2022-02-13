@@ -146,6 +146,8 @@ class Magento2(object):
             public_key = recaptcha_keys[version]['public_key']
             private_key = recaptcha_keys[version]['private_key']
 
+        self.magento('app:config:import')
+
         if version == 'v3':
             self.config_set('recaptcha_backend/type_recaptcha_v3/public_key', public_key)
             self.config_set('recaptcha_backend/type_recaptcha_v3/private_key', private_key)

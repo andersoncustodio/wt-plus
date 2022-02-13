@@ -52,7 +52,8 @@ def disable():
 @services.command()
 def configure():
     os.system(r'sudo apt install -y oathtool')
-    os.system(fr'cp {wt_plus.core.config.wt_path}/config/recaptcha_keys.json {wt_plus.core.config.wt_path}/config/recaptcha_keys.json')
+    os.system(fr'cp {wt_plus.core.config.wt_path}/templates/config/recaptcha_keys.json '
+              '{wt_plus.core.config.wt_config_path}/config/recaptcha_keys.json')
     wt_plus.core.site.configure()
     wt_plus.core.site.host.configure()
     wt_plus.core.site.http.configure()
