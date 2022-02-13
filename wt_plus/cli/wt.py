@@ -192,6 +192,7 @@ def unsecure(site_id):
 def alias(name):
     try:
         wt_plus.core.site.add_alias(wt_plus.core.site.current_site_id, name)
+        wt_plus.core.site.dump_config()
         click.echo(f"'{name}' adicionado 🔥")
     except wt_plus.core.SiteNotExistsError as e:
         click.echo(e)
