@@ -189,9 +189,10 @@ def unsecure(site_id):
 
 @wt.command()
 @click.argument('name')
-def alias(name):
+@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+def alias(name, site_id):
     try:
-        wt_plus.core.site.add_alias(wt_plus.core.site.current_site_id, name)
+        wt_plus.core.site.add_alias(site_id, name)
         wt_plus.core.site.dump_config()
         click.echo(f"'{name}' adicionado 🔥")
     except wt_plus.core.SiteNotExistsError as e:
