@@ -2,7 +2,7 @@ wt-plus
 =======
 
 wt+ is a development environment for Ubuntu Linux (soon in other linux distributions and macOS). No Vagrant, no Docker
-and **automatic** `/etc/hosts' management.
+and **automatic** `/etc/hosts` management.
 
 Pre-alpha project
 =================
