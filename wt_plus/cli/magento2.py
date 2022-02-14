@@ -24,8 +24,8 @@ magento2 = click.Group(name='magento2')
 @click.option('--admin_user', default='admin')
 @click.option('--admin_password', default='admin123')
 @click.option('--lastname', default='Env')
-@click.option('--email', default=f'admin@{wt_plus.core.site.default_site_id()}.test')
-@click.option('--base-url', default=f'http://{wt_plus.core.site.default_site_id()}.test')
+@click.option('--email', default=f'admin@{wt_plus.core.site.current_site_id}.test')
+@click.option('--base-url', default=f'http://{wt_plus.core.site.current_site_id}.test')
 @click.option('--with-sample-data', is_flag=True, default=False)
 def install(version, admin_user, admin_password, firstname, lastname, email, base_url, with_sample_data):
     try:
@@ -39,8 +39,8 @@ def install(version, admin_user, admin_password, firstname, lastname, email, bas
 
 @magento2.command()
 @click.argument('src')
-@click.argument('dist', default=f'{wt_plus.core.site.default_site_id()}.test')
-@click.argument('db_name', default=wt_plus.core.site.default_site_id())
+@click.argument('dist', default=f'{wt_plus.core.site.current_site_id}.test')
+@click.argument('db_name', default=wt_plus.core.site.current_site_id)
 def change_base_url(src, dist, db_name):
     try:
         wt_plus.core.site.magento2.change_base_url(src, dist, db_name)

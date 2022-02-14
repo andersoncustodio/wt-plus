@@ -1,5 +1,8 @@
 import os
 import json
+import re
+import unidecode
+
 from jinja2 import Template
 
 
@@ -51,27 +54,19 @@ class Site:
     def configure(self):
         self.install()
 
-    def default_site_id(self, ignore_alias=False, onlyexists=False):
-        """
-        TODO: Set to consider only the full site path
-        """
-        project_id = os.path.basename(os.path.splitext(os.getcwd())[0][1:])
-        alias = self.config.get_config(f'wt/alias/{project_id}')
-        if alias and not ignore_alias:
-            project_id = alias
-        site = self.config.get_config(f'sites/{project_id}')
+    @property
+    def default_site_id(self):
+        default_site_id = os.path.basename(os.path.splitext(os.getcwd())[0][1:])
+        default_site_id = unidecode.unidecode(default_site_id).lower()
+        default_site_id = re.sub(r'[\W_]+', '-', default_site_id)
 
-        if not site and onlyexists is True:
-            return
-
-        return project_id
+        return default_site_id
 
     @property
     def current_site_id(self):
-        if not self.is_site_exists(self.default_site_id(onlyexists=True)):
-            raise SiteNotExistsError(self.MSG_SITE_NOT_EXISTS.format(site_id=self.default_site_id()))
+        current_site_id = self.find_site_id_by_path(os.path.splitext(os.getcwd())[0])
 
-        return self.default_site_id(onlyexists=True)
+        return current_site_id
 
     def find_site_by_id(self, site_id):
         if not self.is_site_exists(site_id):
@@ -79,11 +74,38 @@ class Site:
 
         return self.config.get('sites').get(site_id)
 
+    def find_site_id_by_path(self, path):
+        sites = self.sites()
+
+        site_id = None
+        path = path.rstrip('/')
+
+        for site in sites:
+            site_path = self.config.get('sites').get(site).get('path')
+
+            if site_path is None:
+                continue
+
+            site_path = site_path.rstrip('/')
+
+            if site_path == path:
+                site_id = site
+
+        if site_id is None:
+            path = os.path.dirname(path)
+
+            if path == '':
+                return None
+
+            return self.find_site_id_by_path(path)
+
+        return site_id
+
     def site_path(self):
-        vhost = self.config.get('sites').get(self.default_site_id())
+        vhost = self.config.get('sites').get(self.current_site_id)
 
         if vhost is False:
-            raise SiteNotExistsError(self.MSG_SITE_NOT_EXISTS.format(site_id=self.default_site_id()))
+            raise SiteNotExistsError(self.MSG_SITE_NOT_EXISTS.format(site_id=self.current_site_id))
 
         return vhost.get('path').rstrip('/')
 
@@ -127,14 +149,6 @@ class Site:
         self.config.set_site_config('public_path', public_path, site_id)
 
         if not unsecure:
-            self.config.set_site_config('secure', True, site_id)
-
-        real_path = self.default_site_id(ignore_alias=True)
-
-        if site_id != real_path:
-            self.config.set_config(f'wt/alias/{real_path}', site_id)
-
-        if not unsecure:
             self.secure(site_id)
 
     def remove(self, site_id):
@@ -146,7 +160,6 @@ class Site:
             self.unsecure(site_id)
 
         self.config.get('sites').pop(site_id, None)
-        self.config.get('wt').get('alias').pop(self.default_site_id(ignore_alias=True), None)
 
     def add_alias(self, site_id, name):
         if not self.is_site_exists(site_id):
@@ -314,6 +327,8 @@ class Site:
 
         if framework == 'magento2' and self.magento2.version is not None:
             self.magento2.dev_config()
+
+        self.config.set_site_config('secure', True, site_id)
 
     def unsecure(self, site_id):
         if not self.is_site_exists(site_id):

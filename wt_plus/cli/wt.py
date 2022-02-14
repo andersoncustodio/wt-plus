@@ -55,7 +55,7 @@ def phpx(path, idekey):
 @wt.command()
 @click.argument('path', type=click.STRING, autocompletion=wt_plus.core.config.config_path_complete)
 @click.argument('value', type=click.STRING, autocompletion=wt_plus.core.config.config_value_complete, required=False)
-@click.argument('site_id', default=wt_plus.core.site.default_site_id())
+@click.argument('site_id', default=wt_plus.core.site.current_site_id)
 def config(path, value, site_id):
     if path not in wt_plus.core.config.public_configs:
         click.echo('Não disponível')
@@ -74,7 +74,7 @@ def config(path, value, site_id):
 
 @wt.command()
 @click.argument('path', type=click.STRING, autocompletion=wt_plus.core.config.config_path_complete)
-@click.argument('site_id', default=wt_plus.core.site.default_site_id())
+@click.argument('site_id', default=wt_plus.core.site.current_site_id)
 def unconfig(path, site_id):
     if path not in wt_plus.core.config.public_configs:
         click.echo('Não disponível')
@@ -92,7 +92,7 @@ def self_config():
 
 
 @wt.command()
-@click.argument('site_id', default=wt_plus.core.site.default_site_id())
+@click.argument('site_id', default=wt_plus.core.site.current_site_id)
 def log(site_id):
     if not wt_plus.core.site.is_site_exists(site_id):
         click.echo('Site não existe')
@@ -101,8 +101,17 @@ def log(site_id):
 
 
 @wt.command()
+def current():
+    site_id = wt_plus.core.site.current_site_id
+
+    if site_id is None:
+        click.echo('Site não encontrado 😢')
+
+    click.echo(wt_plus.core.site.current_site_id)
+
+@wt.command()
 @click.argument('version', required=False, type=click.FLOAT, autocompletion=php_versions)
-@click.argument('site_id', default=wt_plus.core.site.default_site_id())
+@click.argument('site_id', default=wt_plus.core.site.current_site_id)
 @click.option('--update-cli', default=False, is_flag=True, help='Update cli php')
 def use(version, site_id, update_cli):
     try:
@@ -150,7 +159,7 @@ def links():
 
 
 @wt.command()
-@click.argument('site', default=wt_plus.core.site.default_site_id())
+@click.argument('site', default=wt_plus.core.site.default_site_id)
 @click.option('--framework', default=None, autocompletion=framework_complete)
 @click.option('--unsecure', default=False, is_flag=True)
 def link(site, framework, unsecure):
@@ -163,7 +172,7 @@ def link(site, framework, unsecure):
 
 
 @wt.command()
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def unlink(site_id):
     try:
         wt_plus.core.site.remove(site_id)
@@ -174,14 +183,14 @@ def unlink(site_id):
 
 
 @wt.command()
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def secure(site_id):
     wt_plus.core.site.secure(site_id)
     wt_plus.core.site.dump_config()
 
 
 @wt.command()
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def unsecure(site_id):
     wt_plus.core.site.unsecure(site_id)
     wt_plus.core.site.dump_config()
@@ -189,7 +198,7 @@ def unsecure(site_id):
 
 @wt.command()
 @click.argument('name')
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def alias(name, site_id):
     try:
         wt_plus.core.site.add_alias(site_id, name)
@@ -202,7 +211,7 @@ def alias(name, site_id):
 @wt.command()
 @click.argument('origin')
 @click.argument('target')
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def proxy(origin, target, site_id):
     try:
         wt_plus.core.site.add_proxy(site_id, origin, target)
@@ -216,7 +225,7 @@ def proxy(origin, target, site_id):
 
 @wt.command()
 @click.argument('origin')
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def unproxy(origin, site_id):
     try:
         wt_plus.core.site.rm_proxy(site_id, origin)
@@ -228,7 +237,7 @@ def unproxy(origin, site_id):
 
 @wt.command()
 @click.argument('name', autocompletion=wt_plus.core.site.aliases_complete)
-@click.argument('site_id', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.site.sites_complete)
+@click.argument('site_id', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.site.sites_complete)
 def unalias(name, site_id):
     try:
         wt_plus.core.site.del_alias(site_id, name)

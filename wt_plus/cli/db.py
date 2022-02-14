@@ -21,7 +21,7 @@ def db_list():
 
 
 @db.command('create')
-@click.argument('db_name', default=wt_plus.core.site.default_site_id())
+@click.argument('db_name', default=wt_plus.core.site.current_site_id)
 def db_create(db_name):
     try:
         wt_plus.core.db.db_create(db_name)
@@ -30,7 +30,7 @@ def db_create(db_name):
 
 
 @db.command('drop')
-@click.argument('db_name', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.db.databases_complete)
+@click.argument('db_name', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.db.databases_complete)
 def db_drop(db_name):
     if not wt_plus.core.db.db_exists(db_name):
         click.echo(wt_plus.core.db.MSG_DB_NOT_EXISTS.format(db_name=db_name))
@@ -42,7 +42,7 @@ def db_drop(db_name):
 
 @db.command('export')
 @click.argument('sql_name', default='-')
-@click.argument('db_name', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.db.databases_complete)
+@click.argument('db_name', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.db.databases_complete)
 @click.option('--sql', default=False, is_flag=True, help='Plain sql to dump')
 def db_dump(sql_name, db_name, sql):
     try:
@@ -52,7 +52,7 @@ def db_dump(sql_name, db_name, sql):
 
 
 @db.command('reset')
-@click.argument('db_dest', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.db.databases_complete)
+@click.argument('db_dest', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.db.databases_complete)
 def db_reset(db_dest):
     if wt_plus.core.db.db_exists(db_dest):
         click.confirm("Overwrite the '{db_dest}' database? 😮".format(db_dest=db_dest), abort=True)
@@ -69,7 +69,7 @@ def db_remove_definer(sql_path):
 
 @db.command('import')
 @click.argument('sql_path', type=click.Path(exists=True), autocompletion=wt_plus.core.db.sql_file_complete)
-@click.argument('db_dest', default=wt_plus.core.site.default_site_id(), autocompletion=wt_plus.core.db.databases_complete)
+@click.argument('db_dest', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.db.databases_complete)
 def db_import(sql_path, db_dest):
     if wt_plus.core.db.db_exists(db_dest):
         click.confirm("Overwrite the '{db_dest}' database? 😮".format(db_dest=db_dest), abort=True)
