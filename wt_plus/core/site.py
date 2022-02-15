@@ -135,7 +135,7 @@ class Site:
             raise SiteExistsError(self.MSG_SITE_EXISTS.format(site_id=site_id))
 
         php_version = self.config.get_config('php/version') or 7.3
-        public_path = ''
+        public_path = None
 
         self.config.set_site_config('path',  os.getcwd() + "/", site_id)
         self.config.set_site_config('php', {"version": php_version}, site_id)
@@ -146,7 +146,8 @@ class Site:
             if framework == 'magento2':
                 public_path = 'pub'
 
-        self.config.set_site_config('public_path', public_path, site_id)
+        if public_path is not None:
+            self.config.set_site_config('public_path', public_path, site_id)
 
         if not unsecure:
             self.secure(site_id)
