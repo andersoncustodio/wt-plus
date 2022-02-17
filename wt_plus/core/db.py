@@ -110,7 +110,7 @@ class Db:
 
         now = datetime.now()
 
-        cmd = "mysqldump --column-statistics=0 {db_name} "
+        cmd = "mysqldump {db_name} "
 
         if file_name == '-':
             file_name = "{db_name}-{now}.sql".format(now=now.strftime(self.DATE_FORMAT), db_name=db_name)
