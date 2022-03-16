@@ -70,7 +70,8 @@ def db_remove_definer(sql_path):
 @db.command('import')
 @click.argument('sql_path', type=click.Path(exists=True), autocompletion=wt_plus.core.db.sql_file_complete)
 @click.argument('db_dest', default=wt_plus.core.site.current_site_id, autocompletion=wt_plus.core.db.databases_complete)
-def db_import(sql_path, db_dest):
+@click.option('--remove-definer', is_flag=True)
+def db_import(sql_path, db_dest, remove_definer):
     if wt_plus.core.db.db_exists(db_dest):
         click.confirm("Overwrite the '{db_dest}' database? 😮".format(db_dest=db_dest), abort=True)
         wt_plus.core.db.db_drop(db_dest)
@@ -78,7 +79,7 @@ def db_import(sql_path, db_dest):
     wt_plus.core.db.db_create(db_dest)
 
     try:
-        wt_plus.core.db.db_import(sql_path, db_dest)
+        wt_plus.core.db.db_import(sql_path, db_dest, remove_definer)
     except wt_plus.core.SqlFileNotExistsError as e:
         click.echo(e)
 

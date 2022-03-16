@@ -125,7 +125,7 @@ class Db:
         click.echo(msg)
         os.system(cmd.format(db_name=db_name, file_name=file_name))
 
-    def db_import(self, sql_path, db_name):
+    def db_import(self, sql_path, db_name, remove_definer=False):
         if not self.db_exists(db_name):
             raise DbExistsError(self.MSG_DB_EXISTS.format(db_name=db_name))
 
@@ -139,7 +139,11 @@ class Db:
         if mime == 'application/gzip':
             cmd += 'z'
 
-        cmd += 'cat "{sql_path}" | mysql {db_dest}'
+        cmd += 'cat "{sql_path}"'
+        if remove_definer:
+            cmd += r'| sed "s/DEFINER=[^*]*\*/\*/g"'
+        cmd += '| mysql {db_dest}'
+
         os.system(cmd.format(sql_path=sql_path, db_dest=db_name))
 
     def db_remove_definer(self, sql_path):
