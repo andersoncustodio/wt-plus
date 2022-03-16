@@ -3,6 +3,7 @@ import re
 import subprocess
 import json
 from packaging import version as packaging_version
+from jinja2 import Template
 
 
 class Magento2(object):
@@ -20,7 +21,7 @@ class Magento2(object):
         if self._version is not None:
             return self._version
 
-        magento2_base_composer = rf'{self.site.site_path()}/vendor/magento/magento2-base/composer.json'
+        magento2_base_composer = rf'{self.site.site_path()}/composer.lock'
 
         if not os.path.isfile(magento2_base_composer):
             return None
@@ -29,9 +30,9 @@ class Magento2(object):
             json_object = json.load(jsonFile)
             jsonFile.close()
 
-        self._version = json_object['version']
-
-        return self._version
+        for package in json_object['packages']:
+            if package['name'] == 'magento/magento2-base':
+                return package['version']
 
     def magento(self, cmd):
         os.system(f'{self.site.site_path()}/bin/magento {cmd}')
@@ -65,6 +66,10 @@ class Magento2(object):
         self.config_set('admin/url/custom_path', 'admin', '--lock-env')
         self.config_set('admin/url/use_custom', '0', '--lock-env')
 
+        self.config_set('admin/security/use_form_key', '0')
+        self.config_set('admin/security/session_lifetime', '31536000')
+        self.config_set('admin/captcha/enable', '0')
+
         if self.config.get('sites').get(self.site.current_site_id).get('secure'):
             self.config_set('web/secure/use_in_frontend', '1')
             self.config_set('web/secure/use_in_adminhtml', '1')
@@ -72,20 +77,15 @@ class Magento2(object):
             self.config_set('web/secure/use_in_frontend', '0')
             self.config_set('web/secure/use_in_adminhtml', '0')
 
-        self.config_set('admin/security/use_form_key', '0')
-
-        self.config_set('admin/security/session_lifetime', '31536000')
-
         self.config_set('web/cookie/cookie_domain', '')
         self.config_set('web/cookie/cookie_path', '')
+        self.config_set('web/cookie/cookie_lifetime', '31536000')
+        self.config_set('web/seo/use_rewrites', '1')
 
-        self.config_set('admin/captcha/enable', '0')
         self.config_set('customer/captcha/enable', '0')
 
         self.config_set('dev/debug/template_hints_storefront', '1')
         self.config_set('dev/debug/template_hints_storefront_show_with_parameter', '1')
-
-        self.config_set('web/seo/use_rewrites', '1')
 
         self.config_set('google/analytics/active', '0')
 
@@ -104,7 +104,12 @@ class Magento2(object):
 
         self.magento('cache:clean')
 
-    def change_base_url(self, src, dist, db_name):
+    def generate_env(self, env_file, crypt_key):
+        env_file_tpl = Template(open(self.config.wt_path + '/templates/magento2/env.php.jinja').read(),
+                                trim_blocks=True, lstrip_blocks=True)
+        env_file_tpl.stream(site=self.site.current_site_id, crypt_key=crypt_key).dump(env_file)
+
+    def base_url(self, src, dist, db_name):
         with self.db.db_connect:
             with self.db.db_connect.cursor() as cur:
                 cur.execute(f'SELECT * FROM {db_name}.core_config_data WHERE '
@@ -169,9 +174,9 @@ class Magento2(object):
                 cur.execute(f'TRUNCATE {self.site.current_site_id}.oauth_token_request_log')
 
     def install(self, site_id, version, admin_user, admin_password, firstname, lastname, mail, base_url, with_sample_data=False):
-        php_version = 7.3
+        php_version = 7.4
         if packaging_version.parse(version) < packaging_version.parse('2.4'):
-            php_version = 7.2
+            php_version = 7.3
 
         base_url_secure = base_url.replace('http://', 'https://')
         self.site.php.cli_version(php_version)
@@ -217,15 +222,18 @@ class Magento2(object):
         cmd.append('--amqp-virtualhost="/"')
 
         cmd.append('--session-save="redis"')
+        cmd.append('--session-save-redis-db="0"')
         cmd.append('--session-save-redis-host="127.0.0.1"')
         cmd.append('--session-save-redis-port=6379')
         cmd.append('--session-save-redis-timeout=1')
 
         cmd.append('--cache-backend="redis"')
+        cmd.append('--cache-backend-redis-db="1"')
         cmd.append('--cache-backend-redis-server="127.0.0.1"')
         cmd.append('--cache-backend-redis-port=6379')
 
         cmd.append('--page-cache="redis"')
+        cmd.append('--page-cache-redis-db="2"')
         cmd.append('--page-cache-redis-server="127.0.0.1"')
         cmd.append('--page-cache-redis-port=6379')
 

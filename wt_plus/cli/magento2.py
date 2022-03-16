@@ -1,6 +1,7 @@
 import click
 import subprocess
 import wt_plus.core
+import os
 
 
 def _app_import():
@@ -41,9 +42,9 @@ def install(version, admin_user, admin_password, firstname, lastname, email, bas
 @click.argument('src')
 @click.argument('dist', default=f'{wt_plus.core.site.current_site_id}.test')
 @click.argument('db_name', default=wt_plus.core.site.current_site_id)
-def change_base_url(src, dist, db_name):
+def base_url(src, dist, db_name):
     try:
-        wt_plus.core.site.magento2.change_base_url(src, dist, db_name)
+        wt_plus.core.site.magento2.base_url(src, dist, db_name)
         click.echo(f"Changed domain 🔥")
     except wt_plus.core.SiteNotExistsError as e:
         click.echo(e)
@@ -82,6 +83,15 @@ def sample_data():
 def clean_static():
     wt_plus.core.site.magento2.clean_static()
     click.echo('Cleaning completed 🧹️')
+
+
+@magento2.command()
+def generate_env():
+    env_file = rf'{wt_plus.core.site.site_path()}/app/etc/env.php'
+    if os.path.isfile(env_file):
+        click.confirm("Replace existing env.php? 😮", abort=True)
+    crypt_key = click.prompt('Please enter a crypt key', type=str)
+    wt_plus.core.site.magento2.generate_env(env_file, crypt_key)
 
 
 @magento2.command('tfa-config')

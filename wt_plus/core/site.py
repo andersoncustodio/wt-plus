@@ -323,12 +323,6 @@ class Site:
         os.system(cmd)
 
         self.config.get('sites').get(site_id)['secure'] = True
-
-        framework = self.config.get('sites').get(site_id).get('framework')
-
-        if framework == 'magento2' and self.magento2.version is not None:
-            self.magento2.dev_config()
-
         self.config.set_site_config('secure', True, site_id)
 
     def unsecure(self, site_id):
@@ -337,11 +331,6 @@ class Site:
 
         self.config.get('sites').get(site_id).pop('secure', None)
         os.system(f'find {self.cert_path} -name "{site_id}.test*" -type f -delete')
-
-        framework = self.config.get('sites').get(site_id).get('framework')
-
-        if framework == 'magento2':
-            self.magento2.dev_config()
 
     def dump_config(self):
         self.config.save()
