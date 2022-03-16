@@ -109,6 +109,7 @@ def current():
 
     click.echo(wt_plus.core.site.current_site_id)
 
+
 @wt.command()
 @click.argument('version', required=False, type=click.FLOAT, autocompletion=php_versions)
 @click.argument('site_id', default=wt_plus.core.site.current_site_id)
@@ -250,7 +251,7 @@ def unalias(name, site_id):
 @wt.command()
 def reload():
     wt_plus.core.config.reload()
-    wt_plus.core.site.http.dump_config()
+    wt_plus.core.site.dump_config()
 
 
 @wt.command('open')
