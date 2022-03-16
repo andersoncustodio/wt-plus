@@ -29,7 +29,9 @@ class Php(object):
             create = f'[ $(grep -c "include={pool_path}/\*.conf" /etc/php/{version}/fpm/php-fpm.conf) == "0" ] && echo "\ninclude={pool_path}/*.conf" >> /etc/php/{version}/fpm/php-fpm.conf'
             os.system(f'sudo /bin/bash -c \'{create}\'')
             os.system(f'echo "sendmail_path=/usr/local/bin/mhsendmail\n" | sudo tee /etc/php/{version}/mods-available/mailhog.ini')
+            os.system(f'echo "max_input_vars=10000\n" | sudo tee /etc/php/{version}/mods-available/wt.ini')
 
+        os.system('sudo phpenmod wt')
         os.system('sudo phpenmod mailhog')
         os.system('sudo phpdismod -s cli xdebug')
 
